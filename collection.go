@@ -5,8 +5,9 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
-	"github.com/shopspring/decimal"
 	"strings"
+
+	"github.com/shopspring/decimal"
 )
 
 // Collect transforms src into Collection. The src could be json string, []string,
@@ -239,6 +240,9 @@ type Collection interface {
 
 	// Select select the keys of collection and delete others.
 	Select(keys ...string) Collection
+
+	// Column select the values of collection by the given key.
+	Column(key string) Collection
 
 	// Avg returns the average value of a given key.
 	Avg(key ...string) decimal.Decimal

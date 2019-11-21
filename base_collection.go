@@ -2,6 +2,7 @@ package collection
 
 import (
 	"encoding/json"
+
 	"github.com/shopspring/decimal"
 )
 
@@ -21,6 +22,11 @@ func (c BaseCollection) Length() int {
 
 // Select select the keys of collection and delete others.
 func (c BaseCollection) Select(keys ...string) Collection {
+	panic("not implement")
+}
+
+// Column select the values of collection by the given key.
+func (c BaseCollection) Column(key string) Collection {
 	panic("not implement")
 }
 

@@ -3,11 +3,12 @@ package collection
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/mitchellh/mapstructure"
-	"github.com/shopspring/decimal"
 	"math"
 	"math/rand"
 	"time"
+
+	"github.com/mitchellh/mapstructure"
+	"github.com/shopspring/decimal"
 )
 
 type MapArrayCollection struct {
@@ -62,6 +63,24 @@ func (c MapArrayCollection) Select(keys ...string) Collection {
 	return MapArrayCollection{
 		value: n,
 	}
+}
+
+// Column select the values of collection by the given key
+func (c MapArrayCollection) Column(key string) Collection {
+	var n = make([]map[string]interface{}, len(c.value))
+	copy(n, c.value)
+
+	var a []interface{}
+	for _, value := range n {
+		for k, v := range value {
+			if key == k {
+				a = append(a, v)
+				break
+			}
+		}
+	}
+
+	return Collect(a)
 }
 
 // Sum returns the sum of all items in the collection.
@@ -585,10 +604,10 @@ func (c MapArrayCollection) Partition(cb PartCB) (Collection, Collection) {
 	}
 
 	return MapArrayCollection{
-		value: d1,
-	}, MapArrayCollection{
-		value: d2,
-	}
+			value: d1,
+		}, MapArrayCollection{
+			value: d2,
+		}
 }
 
 // Pop removes and returns the last item from the collection.

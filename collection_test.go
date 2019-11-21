@@ -2,11 +2,12 @@ package collection
 
 import (
 	"fmt"
-	"github.com/magiconair/properties/assert"
-	"github.com/shopspring/decimal"
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/magiconair/properties/assert"
+	"github.com/shopspring/decimal"
 )
 
 var (
@@ -1232,4 +1233,15 @@ func ExampleBaseCollection_ToStruct() {
 	fmt.Println(people)
 
 	// Output: [{mike 0} {Mary 1} {Jane 2}]
+}
+
+func TestMapArrayCollection_Column(t *testing.T) {
+	a := []map[string]interface{}{
+		{"name": "mike", "sex": 0},
+		{"name": "Mary", "sex": 1},
+		{"name": "Jane", "sex": 1},
+		{"sex": 3},
+	}
+
+	fmt.Println(Collect(a).Column("sex").Unique().ToIntArray())
 }
