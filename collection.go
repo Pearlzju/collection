@@ -231,12 +231,16 @@ type Collection interface {
 	// All returns the underlying array represented by the collection.
 	All() []interface{}
 
+	AllE() ([]interface{}, error)
+
 	// Length return the length of the collection.
 	Length() int
 
 	// ToStruct turn the collection to the specified struct using mapstructure.
 	// https://github.com/mitchellh/mapstructure
 	ToStruct(dist interface{})
+
+	ToStructE(dist interface{}) error
 
 	// Select select the keys of collection and delete others.
 	Select(keys ...string) Collection
@@ -259,6 +263,8 @@ type Collection interface {
 	// Join joins the collection's values with a string.
 	Join(delimiter string) string
 
+	JoinE(delimiter string) (string, error)
+
 	// Combine combines the values of the collection, as keys, with the values of another array or collection.
 	Combine(value []interface{}) Collection
 
@@ -270,6 +276,8 @@ type Collection interface {
 
 	// Mode returns the mode value of a given key.
 	Mode(key ...string) []interface{}
+
+	ModeE(key ...string) ([]interface{}, error)
 
 	// Only returns the items in the collection with the specified keys.
 	Only(keys []string) Collection
@@ -301,14 +309,20 @@ type Collection interface {
 	// Contains determines whether the collection contains a given item.
 	Contains(value ...interface{}) bool
 
+	ContainsE(value ...interface{}) (bool, error)
+
 	// CountBy counts the occurrences of values in the collection. By default, the method counts the occurrences of every element.
 	CountBy(callback ...interface{}) map[interface{}]int
+
+	CountByE(callback ...interface{}) (map[interface{}]int, error)
 
 	// CrossJoin cross joins the collection's values among the given arrays or collections, returning a Cartesian product with all possible permutations.
 	CrossJoin(array ...[]interface{}) MultiDimensionalArrayCollection
 
 	// Dd dumps the collection's items and ends execution of the script.
 	Dd()
+
+	DdE() error
 
 	// Diff compares the collection against another collection or a plain PHP array based on its values.
 	// This method will return the values in the original collection that are not present in the given collection.
@@ -325,11 +339,15 @@ type Collection interface {
 	// Dump dumps the collection's items.
 	Dump()
 
+	DumpE() error
+
 	// Each iterates over the items in the collection and passes each item to a callback.
 	Each(func(item, value interface{}) (interface{}, bool)) Collection
 
 	// Every may be used to verify that all elements of a collection pass a given truth test.
 	Every(CB) bool
+
+	EveryE(CB) (bool, error)
 
 	// Except returns all items in the collection except for those with the specified keys.
 	Except([]string) Collection
@@ -340,8 +358,12 @@ type Collection interface {
 	// First returns the first element in the collection that passes a given truth test.
 	First(...CB) interface{}
 
+	FirstE(...CB) (interface{}, error)
+
 	// FirstWhere returns the first element in the collection with the given key / value pair.
 	FirstWhere(key string, values ...interface{}) map[string]interface{}
+
+	FirstWhereE(key string, values ...interface{}) (map[string]interface{}, error)
 
 	// FlatMap iterates through the collection and passes each value to the given callback.
 	FlatMap(func(value interface{}) interface{}) Collection
@@ -358,14 +380,20 @@ type Collection interface {
 	// Get returns the item at a given key. If the key does not exist, null is returned.
 	Get(string, ...interface{}) interface{}
 
+	GetE(string, ...interface{}) (interface{}, error)
+
 	// GroupBy groups the collection's items by a given key.
 	GroupBy(string) Collection
 
 	// Has determines if a given key exists in the collection.
 	Has(...string) bool
 
+	HasE(...string) (bool, error)
+
 	// Implode joins the items in a collection. Its arguments depend on the type of items in the collection.
 	Implode(string, string) string
+
+	ImplodeE(string, string) (string, error)
 
 	// Intersect removes any values from the original collection that are not present in the given array or collection.
 	Intersect([]string) Collection
@@ -376,8 +404,12 @@ type Collection interface {
 	// IsEmpty returns true if the collection is empty; otherwise, false is returned.
 	IsEmpty() bool
 
+	IsEmptyE() (bool, error)
+
 	// IsNotEmpty returns true if the collection is not empty; otherwise, false is returned.
 	IsNotEmpty() bool
+
+	IsNotEmptyE() (bool, error)
 
 	// KeyBy keys the collection by the given key. If multiple items have the same key, only the last one will
 	// appear in the new collection.
@@ -388,6 +420,8 @@ type Collection interface {
 
 	// Last returns the last element in the collection that passes a given truth test.
 	Last(...CB) interface{}
+
+	LastE(...CB) (interface{}, error)
 
 	// MapToGroups groups the collection's items by the given callback.
 	MapToGroups(MapCB) Collection
@@ -412,6 +446,8 @@ type Collection interface {
 	// Pop removes and returns the last item from the collection.
 	Pop() interface{}
 
+	PopE() (interface{}, error)
+
 	// Push appends an item to the end of the collection.
 	Push(interface{}) Collection
 
@@ -420,6 +456,8 @@ type Collection interface {
 
 	// Reduce reduces the collection to a single value, passing the result of each iteration into the subsequent iteration.
 	Reduce(ReduceCB) interface{}
+
+	ReduceE(ReduceCB) (interface{}, error)
 
 	// Reject filters the collection using the given callback.
 	Reject(CB) Collection
@@ -430,6 +468,8 @@ type Collection interface {
 	// Search searches the collection for the given value and returns its key if found. If the item is not found,
 	// -1 is returned.
 	Search(interface{}) int
+
+	SearchE(interface{}) (int, error)
 
 	// Shift removes and returns the first item from the collection.
 	Shift() Collection
@@ -464,26 +504,42 @@ type Collection interface {
 	// ToJson converts the collection into a json string.
 	ToJson() string
 
+	ToJsonE() (string, error)
+
 	// ToNumberArray converts the collection into a plain golang slice which contains decimal.Decimal.
 	ToNumberArray() []decimal.Decimal
+
+	ToNumberArrayE() ([]decimal.Decimal, error)
 
 	// ToIntArray converts the collection into a plain golang slice which contains int.
 	ToIntArray() []int
 
+	ToIntArrayE() ([]int, error)
+
 	// ToInt64Array converts the collection into a plain golang slice which contains int.
 	ToInt64Array() []int64
+
+	ToInt64ArrayE() ([]int64, error)
 
 	// ToStringArray converts the collection into a plain golang slice which contains string.
 	ToStringArray() []string
 
+	ToStringArrayE() ([]string, error)
+
 	// ToMultiDimensionalArray converts the collection into a multi dimensional array.
 	ToMultiDimensionalArray() [][]interface{}
+
+	ToMultiDimensionalArrayE() ([][]interface{}, error)
 
 	// ToMap converts the collection into a plain golang map.
 	ToMap() map[string]interface{}
 
+	ToMapE() (map[string]interface{}, error)
+
 	// ToMapArray converts the collection into a plain golang slice which contains map.
 	ToMapArray() []map[string]interface{}
+
+	ToMapArrayE() ([]map[string]interface{}, error)
 
 	// Where filters the collection by a given key / value pair.
 	Where(key string, values ...interface{}) Collection

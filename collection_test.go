@@ -1236,12 +1236,14 @@ func ExampleBaseCollection_ToStruct() {
 }
 
 func TestMapArrayCollection_Column(t *testing.T) {
-	a := []map[string]interface{}{
-		{"name": "mike", "sex": 0},
-		{"name": "Mary", "sex": 1},
-		{"name": "Jane", "sex": 1},
-		{"sex": 3},
-	}
+	//a := []map[string]interface{}{
+	//	{"name": "mike", "sex": 0},
+	//	{"name": "Mary", "sex": 1},
+	//	{"name": "Jane", "sex": 1},
+	//	{"sex": 3},
+	//}
 
-	fmt.Println(Collect(a).Column("sex").Unique().ToIntArray())
+	a := []int{2, 3, 4, 5, 6, 7}
+
+	fmt.Println(Collect(a).Column("sex").Unique().ToStringArrayE())
 }
