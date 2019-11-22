@@ -15,6 +15,10 @@ func (c MultiDimensionalArrayCollection) ToMultiDimensionalArray() [][]interface
 	return c.value
 }
 
+func (c MultiDimensionalArrayCollection) ToMultiDimensionalArrayE() ([][]interface{}, error) {
+	return c.value, c.err
+}
+
 // Collapse collapses a collection of arrays into a single, flat collection.
 func (c MultiDimensionalArrayCollection) Collapse() Collection {
 	if len(c.value[0]) == 0 {
@@ -50,16 +54,35 @@ func (c MultiDimensionalArrayCollection) Dd() {
 	dd(c)
 }
 
+func (c MultiDimensionalArrayCollection) DdE() error {
+	dd(c)
+	return c.err
+}
+
 // Dump dumps the collection's items.
 func (c MultiDimensionalArrayCollection) Dump() {
 	dump(c)
+}
+
+func (c MultiDimensionalArrayCollection) DumpE() error {
+	dump(c)
+	return c.err
 }
 
 // ToJson converts the collection into a json string.
 func (c MultiDimensionalArrayCollection) ToJson() string {
 	s, err := json.Marshal(c.value)
 	if err != nil {
-		panic(err)
+		return ""
 	}
 	return string(s)
+}
+
+func (c MultiDimensionalArrayCollection) ToJsonE() (string, error) {
+	s, err := json.Marshal(c.value)
+	if err != nil {
+		c.errorHandle(err.Error())
+		return "", err
+	}
+	return string(s), c.err
 }

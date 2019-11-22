@@ -1243,7 +1243,19 @@ func TestMapArrayCollection_Column(t *testing.T) {
 	//	{"sex": 3},
 	//}
 
-	a := []int{2, 3, 4, 5, 6, 7}
+	a := []int{2, 3, 4, 5, 6, 9}
+	b := []int{2, 3, 4, 5, 6, 9}
 
-	fmt.Println(Collect(a).Column("sex").Unique().ToStringArrayE())
+	fmt.Println(Collect(a).Diff(b).ToIntArray())
+	//fmt.Println(Collect(a).Column("name").Unique().ToStringArrayE())
+}
+
+func BenchmarkMapArrayCollection_Diff(t *testing.B) {
+
+	a := []int{2, 3, 4, 5, 6, 9}
+	b := []int{2, 3, 4, 5, 6, 8}
+
+	for i := 0; i < t.N; i++ {
+		Collect(a).Diff(b).ToIntArray()
+	}
 }

@@ -2,10 +2,12 @@ package collection
 
 import (
 	"encoding/json"
-	"github.com/shopspring/decimal"
+	"errors"
 	"math"
 	"math/rand"
 	"time"
+
+	"github.com/shopspring/decimal"
 )
 
 type NumberArrayCollection struct {
@@ -107,7 +109,7 @@ func (c NumberArrayCollection) Splice(index ...int) Collection {
 
 		return NumberArrayCollection{n, BaseCollection{length: len(n)}}
 	} else {
-		panic("invalid argument")
+		return BaseCollection{err: errors.New("invalid argument")}
 	}
 }
 
@@ -115,7 +117,7 @@ func (c NumberArrayCollection) Splice(index ...int) Collection {
 func (c NumberArrayCollection) Take(num int) Collection {
 	var d NumberArrayCollection
 	if num > c.length {
-		panic("not enough elements to take")
+		return BaseCollection{err: errors.New("not enough elements to take")}
 	}
 
 	if num >= 0 {
@@ -139,6 +141,10 @@ func (c NumberArrayCollection) All() []interface{} {
 	return s
 }
 
+func (c NumberArrayCollection) AllE() ([]interface{}, error) {
+	return c.All(), c.err
+}
+
 // Mode returns the mode value of a given key.
 func (c NumberArrayCollection) Mode(key ...string) []interface{} {
 	valueCount := c.CountBy()
@@ -158,9 +164,17 @@ func (c NumberArrayCollection) Mode(key ...string) []interface{} {
 	return maxValue
 }
 
+func (c NumberArrayCollection) ModeE(key ...string) ([]interface{}, error) {
+	return c.Mode(key...), c.err
+}
+
 // ToNumberArray converts the collection into a plain golang slice which contains decimal.Decimal.
 func (c NumberArrayCollection) ToNumberArray() []decimal.Decimal {
 	return c.value
+}
+
+func (c NumberArrayCollection) ToNumberArrayE() ([]decimal.Decimal, error) {
+	return c.value, c.err
 }
 
 // ToIntArray converts the collection into a plain golang slice which contains int.
@@ -172,6 +186,10 @@ func (c NumberArrayCollection) ToIntArray() []int {
 	return v
 }
 
+func (c NumberArrayCollection) ToIntArrayE() ([]int, error) {
+	return c.ToIntArray(), c.err
+}
+
 // ToInt64Array converts the collection into a plain golang slice which contains int64.
 func (c NumberArrayCollection) ToInt64Array() []int64 {
 	var v = make([]int64, len(c.value))
@@ -179,6 +197,10 @@ func (c NumberArrayCollection) ToInt64Array() []int64 {
 		v[i] = value.IntPart()
 	}
 	return v
+}
+
+func (c NumberArrayCollection) ToInt64ArrayE() ([]int64, error) {
+	return c.ToInt64Array(), c.err
 }
 
 // Chunk breaks the collection into multiple, smaller collections of a given size.
@@ -235,6 +257,10 @@ func (c NumberArrayCollection) Contains(value ...interface{}) bool {
 	return false
 }
 
+func (c NumberArrayCollection) ContainsE(value ...interface{}) (bool, error) {
+	return c.Contains(value...), c.err
+}
+
 // CountBy counts the occurrences of values in the collection. By default, the method counts the occurrences of every element.
 func (c NumberArrayCollection) CountBy(callback ...interface{}) map[interface{}]int {
 	valueCount := make(map[interface{}]int)
@@ -253,6 +279,10 @@ func (c NumberArrayCollection) CountBy(callback ...interface{}) map[interface{}]
 	}
 
 	return valueCount
+}
+
+func (c NumberArrayCollection) CountByE(callback ...interface{}) (map[interface{}]int, error) {
+	return c.CountBy(callback...), c.err
 }
 
 // CrossJoin cross joins the collection's values among the given arrays or collections, returning a Cartesian product with all possible permutations.
@@ -285,9 +315,19 @@ func (c NumberArrayCollection) Dd() {
 	dd(c)
 }
 
+func (c NumberArrayCollection) DdE() error {
+	dd(c)
+	return c.err
+}
+
 // Dump dumps the collection's items.
 func (c NumberArrayCollection) Dump() {
 	dump(c)
+}
+
+func (c NumberArrayCollection) DumpE() error {
+	dump(c)
+	return c.err
 }
 
 // Diff compares the collection against another collection or a plain PHP array based on its values.
@@ -342,6 +382,10 @@ func (c NumberArrayCollection) Every(cb CB) bool {
 	return true
 }
 
+func (c NumberArrayCollection) EveryE(cb CB) (bool, error) {
+	return c.Every(cb), c.err
+}
+
 // Filter filters the collection using the given callback, keeping only those items that pass a given truth test.
 func (c NumberArrayCollection) Filter(cb CB) Collection {
 	var d = make([]decimal.Decimal, 0)
@@ -373,6 +417,10 @@ func (c NumberArrayCollection) First(cbs ...CB) interface{} {
 	}
 }
 
+func (c NumberArrayCollection) FirstE(cbs ...CB) (interface{}, error) {
+	return c.First(cbs...), c.err
+}
+
 // ForPage returns a new collection containing the items that would be present on a given page number.
 func (c NumberArrayCollection) ForPage(page, size int) Collection {
 	var d = make([]decimal.Decimal, len(c.value))
@@ -398,9 +446,17 @@ func (c NumberArrayCollection) IsEmpty() bool {
 	return len(c.value) == 0
 }
 
+func (c NumberArrayCollection) IsEmptyE() (bool, error) {
+	return c.IsEmpty(), c.err
+}
+
 // IsNotEmpty returns true if the collection is not empty; otherwise, false is returned.
 func (c NumberArrayCollection) IsNotEmpty() bool {
 	return len(c.value) != 0
+}
+
+func (c NumberArrayCollection) IsNotEmptyE() (bool, error) {
+	return c.IsNotEmpty(), c.err
 }
 
 // Last returns the last element in the collection that passes a given truth test.
@@ -420,6 +476,10 @@ func (c NumberArrayCollection) Last(cbs ...CB) interface{} {
 			return nil
 		}
 	}
+}
+
+func (c NumberArrayCollection) LastE(cbs ...CB) (interface{}, error) {
+	return c.Last(cbs...), c.err
 }
 
 // Median returns the median value of a given key.
@@ -499,10 +559,10 @@ func (c NumberArrayCollection) Partition(cb PartCB) (Collection, Collection) {
 	}
 
 	return NumberArrayCollection{
-		value: d1,
-	}, NumberArrayCollection{
-		value: d2,
-	}
+			value: d1,
+		}, NumberArrayCollection{
+			value: d2,
+		}
 }
 
 // Pop removes and returns the last item from the collection.
@@ -510,6 +570,10 @@ func (c NumberArrayCollection) Pop() interface{} {
 	last := c.value[len(c.value)-1]
 	c.value = c.value[:len(c.value)-1]
 	return last
+}
+
+func (c NumberArrayCollection) PopE() (interface{}, error) {
+	return c.Pop(), c.err
 }
 
 // Push appends an item to the end of the collection.
@@ -536,7 +600,7 @@ func (c NumberArrayCollection) Random(num ...int) Collection {
 		}
 	} else {
 		if num[0] > len(c.value) {
-			panic("wrong num")
+			return BaseCollection{err: errors.New("wrong num")}
 		}
 		var d = make([]decimal.Decimal, len(c.value))
 		copy(d, c.value)
@@ -559,6 +623,9 @@ func (c NumberArrayCollection) Reduce(cb ReduceCB) interface{} {
 	}
 
 	return res
+}
+func (c NumberArrayCollection) ReduceE(cb ReduceCB) (interface{}, error) {
+	return c.Reduce(cb), c.err
 }
 
 // Reject filters the collection using the given callback.
@@ -605,6 +672,10 @@ func (c NumberArrayCollection) Search(v interface{}) int {
 		}
 	}
 	return -1
+}
+
+func (c NumberArrayCollection) SearchE(v interface{}) (int, error) {
+	return -1, c.err
 }
 
 // Shift removes and returns the first item from the collection.
@@ -715,7 +786,16 @@ func (c NumberArrayCollection) Unique() Collection {
 func (c NumberArrayCollection) ToJson() string {
 	s, err := json.Marshal(c.value)
 	if err != nil {
-		panic(err)
+		return ""
 	}
 	return string(s)
+}
+
+func (c NumberArrayCollection) ToJsonE() (string, error) {
+	s, err := json.Marshal(c.value)
+	if err != nil {
+		c.errorHandle(err.Error())
+		return "", err
+	}
+	return string(s), c.err
 }

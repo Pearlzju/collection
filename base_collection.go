@@ -23,6 +23,10 @@ func (c *BaseCollection) errorHandle(e string, args ...string) {
 	}
 }
 
+func (c *BaseCollection) Error(e error) {
+	c.err = e
+}
+
 func (c BaseCollection) Value() interface{} {
 	return c.value
 }
@@ -47,9 +51,11 @@ func (c BaseCollection) Column(key string) Collection {
 // ToStruct turn the collection to the specified struct using mapstructure.
 // https://github.com/mitchellh/mapstructure
 func (c BaseCollection) ToStruct(dist interface{}) {
+	dist = nil
 }
 
 func (c BaseCollection) ToStructE(dist interface{}) error {
+	dist = nil
 	c.errorHandle(ErrNotImplement, "ToStructE")
 	return c.err
 }
@@ -623,7 +629,7 @@ func (c BaseCollection) ToStringArray() []string {
 }
 
 func (c BaseCollection) ToStringArrayE() ([]string, error) {
-	c.errorHandle(ErrNotImplement, "ToStringArray")
+	c.errorHandle(ErrNotImplement, "ToStringArrayE")
 	return nil, c.err
 }
 

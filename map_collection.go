@@ -3,6 +3,7 @@ package collection
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -31,8 +32,16 @@ func (c MapCollection) Only(keys []string) Collection {
 // https://github.com/mitchellh/mapstructure
 func (c MapCollection) ToStruct(dist interface{}) {
 	if err := mapstructure.Decode(c.value, dist); err != nil {
-		panic(err)
+		dist = nil
 	}
+}
+
+func (c MapCollection) ToStructE(dist interface{}) error {
+	if err := mapstructure.Decode(c.value, dist); err != nil {
+		c.errorHandle(err.Error())
+		dist = nil
+	}
+	return c.err
 }
 
 // Select select the keys of collection and delete others.
@@ -71,6 +80,10 @@ func (c MapCollection) ToMap() map[string]interface{} {
 	return c.value
 }
 
+func (c MapCollection) ToMapE() (map[string]interface{}, error) {
+	return c.value, c.err
+}
+
 // Contains determines whether the collection contains a given item.
 func (c MapCollection) Contains(value ...interface{}) bool {
 	if callback, ok := value[0].(CB); ok {
@@ -90,14 +103,28 @@ func (c MapCollection) Contains(value ...interface{}) bool {
 	return false
 }
 
+func (c MapCollection) ContainsE(value ...interface{}) (bool, error) {
+	return c.Contains(), c.err
+}
+
 // Dd dumps the collection's items and ends execution of the script.
 func (c MapCollection) Dd() {
 	dd(c)
 }
 
+func (c MapCollection) DdE() error {
+	dd(c)
+	return c.err
+}
+
 // Dump dumps the collection's items.
 func (c MapCollection) Dump() {
 	dump(c)
+}
+
+func (c MapCollection) DumpE() error {
+	dump(c)
+	return c.err
 }
 
 // DiffAssoc compares the collection against another collection or a plain PHP  array based on its keys and values.
@@ -158,6 +185,10 @@ func (c MapCollection) Every(cb CB) bool {
 		}
 	}
 	return true
+}
+
+func (c MapCollection) EveryE(cb CB) (bool, error) {
+	return c.Every(cb), c.err
 }
 
 // Except returns all items in the collection except for those with the specified keys.
@@ -222,6 +253,10 @@ func (c MapCollection) Get(k string, v ...interface{}) interface{} {
 	}
 }
 
+func (c MapCollection) GetE(k string, v ...interface{}) (interface{}, error) {
+	return c.Get(k, v...), c.err
+}
+
 // Has determines if a given key exists in the collection.
 func (c MapCollection) Has(keys ...string) bool {
 	for _, key := range keys {
@@ -237,6 +272,10 @@ func (c MapCollection) Has(keys ...string) bool {
 		}
 	}
 	return true
+}
+
+func (c MapCollection) HasE(keys ...string) (bool, error) {
+	return c.Has(), c.err
 }
 
 // IntersectByKeys removes any keys from the original collection that are not present in the given array or collection.
@@ -259,9 +298,17 @@ func (c MapCollection) IsEmpty() bool {
 	return len(c.value) == 0
 }
 
+func (c MapCollection) IsEmptyE() (bool, error) {
+	return c.IsEmpty(), c.err
+}
+
 // IsNotEmpty returns true if the collection is not empty; otherwise, false is returned.
 func (c MapCollection) IsNotEmpty() bool {
 	return len(c.value) != 0
+}
+
+func (c MapCollection) IsNotEmptyE() (bool, error) {
+	return c.IsNotEmpty(), c.err
 }
 
 // Keys returns all of the collection's keys.
@@ -295,7 +342,16 @@ func (c MapCollection) Merge(i interface{}) Collection {
 func (c MapCollection) ToJson() string {
 	s, err := json.Marshal(c.value)
 	if err != nil {
-		panic(err)
+		return ""
 	}
 	return string(s)
+}
+
+func (c MapCollection) ToJsonE() (string, error) {
+	s, err := json.Marshal(c.value)
+	if err != nil {
+		c.errorHandle(err.Error())
+		return "", c.err
+	}
+	return string(s), c.err
 }

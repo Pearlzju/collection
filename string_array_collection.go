@@ -2,6 +2,7 @@ package collection
 
 import (
 	"encoding/json"
+	"errors"
 	"math"
 	"math/rand"
 	"time"
@@ -23,6 +24,10 @@ func (c StringArrayCollection) Join(delimiter string) string {
 		}
 	}
 	return s
+}
+
+func (c StringArrayCollection) JoinE(delimiter string) (string, error) {
+	return c.Join(delimiter), c.err
 }
 
 // Length return the length of the collection.
@@ -82,7 +87,7 @@ func (c StringArrayCollection) Splice(index ...int) Collection {
 
 		return StringArrayCollection{n, BaseCollection{length: len(n)}}
 	} else {
-		panic("invalid argument")
+		return BaseCollection{err: errors.New("invalid argument")}
 	}
 }
 
@@ -90,7 +95,7 @@ func (c StringArrayCollection) Splice(index ...int) Collection {
 func (c StringArrayCollection) Take(num int) Collection {
 	var d StringArrayCollection
 	if num > c.length {
-		panic("not enough elements to take")
+		return BaseCollection{err: errors.New("not enough elements to take")}
 	}
 
 	if num >= 0 {
@@ -114,6 +119,10 @@ func (c StringArrayCollection) All() []interface{} {
 	return s
 }
 
+func (c StringArrayCollection) AllE() ([]interface{}, error) {
+	return c.All(), c.err
+}
+
 // Mode returns the mode value of a given key.
 func (c StringArrayCollection) Mode(key ...string) []interface{} {
 	valueCount := c.CountBy()
@@ -133,9 +142,17 @@ func (c StringArrayCollection) Mode(key ...string) []interface{} {
 	return maxValue
 }
 
+func (c StringArrayCollection) ModeE(key ...string) ([]interface{}, error) {
+	return c.Mode(key...), c.err
+}
+
 // ToStringArray converts the collection into a plain golang slice which contains string.
 func (c StringArrayCollection) ToStringArray() []string {
 	return c.value
+}
+
+func (c StringArrayCollection) ToStringArrayE() ([]string, error) {
+	return c.value, c.err
 }
 
 // Chunk breaks the collection into multiple, smaller collections of a given size.
@@ -194,6 +211,10 @@ func (c StringArrayCollection) Contains(value ...interface{}) bool {
 	return false
 }
 
+func (c StringArrayCollection) ContainsE(value ...interface{}) (bool, error) {
+	return c.Contains(value...), c.err
+}
+
 // CountBy counts the occurrences of values in the collection. By default, the method counts the occurrences of every element.
 func (c StringArrayCollection) CountBy(callback ...interface{}) map[interface{}]int {
 	valueCount := make(map[interface{}]int)
@@ -211,6 +232,10 @@ func (c StringArrayCollection) CountBy(callback ...interface{}) map[interface{}]
 	}
 
 	return valueCount
+}
+
+func (c StringArrayCollection) CountByE(callback ...interface{}) (map[interface{}]int, error) {
+	return c.CountBy(callback...), c.err
 }
 
 // CrossJoin cross joins the collection's values among the given arrays or collections, returning a Cartesian product with all possible permutations.
@@ -242,9 +267,19 @@ func (c StringArrayCollection) Dd() {
 	dd(c)
 }
 
+func (c StringArrayCollection) DdE() error {
+	dd(c)
+	return c.err
+}
+
 // Dump dumps the collection's items.
 func (c StringArrayCollection) Dump() {
 	dump(c)
+}
+
+func (c StringArrayCollection) DumpE() error {
+	dump(c)
+	return c.err
 }
 
 // Diff compares the collection against another collection or a plain PHP array based on its values.
@@ -299,6 +334,10 @@ func (c StringArrayCollection) Every(cb CB) bool {
 	return true
 }
 
+func (c StringArrayCollection) EveryE(cb CB) (bool, error) {
+	return c.Every(cb), c.err
+}
+
 // Filter filters the collection using the given callback, keeping only those items that pass a given truth test.
 func (c StringArrayCollection) Filter(cb CB) Collection {
 	var d = make([]string, 0)
@@ -328,6 +367,10 @@ func (c StringArrayCollection) First(cbs ...CB) interface{} {
 			return nil
 		}
 	}
+}
+
+func (c StringArrayCollection) FirstE(cbs ...CB) (interface{}, error) {
+	return c.First(cbs...), c.err
 }
 
 // Intersect removes any values from the original collection that are not present in the given array or collection.
@@ -371,9 +414,17 @@ func (c StringArrayCollection) IsEmpty() bool {
 	return len(c.value) == 0
 }
 
+func (c StringArrayCollection) IsEmptyE() (bool, error) {
+	return c.IsEmpty(), c.err
+}
+
 // IsNotEmpty returns true if the collection is not empty; otherwise, false is returned.
 func (c StringArrayCollection) IsNotEmpty() bool {
 	return len(c.value) != 0
+}
+
+func (c StringArrayCollection) IsNotEmptyE() (bool, error) {
+	return c.IsNotEmpty(), c.err
 }
 
 // Last returns the last element in the collection that passes a given truth test.
@@ -393,6 +444,10 @@ func (c StringArrayCollection) Last(cbs ...CB) interface{} {
 			return nil
 		}
 	}
+}
+
+func (c StringArrayCollection) LastE(cbs ...CB) (interface{}, error) {
+	return c.Last(cbs...), c.err
 }
 
 // Merge merges the given array or collection with the original collection. If a string key in the given items
@@ -484,6 +539,10 @@ func (c StringArrayCollection) Pop() interface{} {
 	return last
 }
 
+func (c StringArrayCollection) PopE() (interface{}, error) {
+	return c.Pop(), c.err
+}
+
 // Push appends an item to the end of the collection.
 func (c StringArrayCollection) Push(v interface{}) Collection {
 	var d = make([]string, len(c.value)+1)
@@ -508,7 +567,7 @@ func (c StringArrayCollection) Random(num ...int) Collection {
 		}
 	} else {
 		if num[0] > len(c.value) {
-			panic("wrong num")
+			return BaseCollection{err: errors.New("wrong num")}
 		}
 		var d = make([]string, len(c.value))
 		copy(d, c.value)
@@ -531,6 +590,10 @@ func (c StringArrayCollection) Reduce(cb ReduceCB) interface{} {
 	}
 
 	return res
+}
+
+func (c StringArrayCollection) ReduceE(cb ReduceCB) (interface{}, error) {
+	return c.Reduce(cb), c.err
 }
 
 // Reject filters the collection using the given callback.
@@ -577,6 +640,10 @@ func (c StringArrayCollection) Search(v interface{}) int {
 		}
 	}
 	return -1
+}
+
+func (c StringArrayCollection) SearchE(v interface{}) (int, error) {
+	return c.Search(v), c.err
 }
 
 // Shift removes and returns the first item from the collection.
@@ -666,7 +733,16 @@ func (c StringArrayCollection) Unique() Collection {
 func (c StringArrayCollection) ToJson() string {
 	s, err := json.Marshal(c.value)
 	if err != nil {
-		panic(err)
+		return ""
 	}
 	return string(s)
+}
+
+func (c StringArrayCollection) ToJsonE() (string, error) {
+	s, err := json.Marshal(c.value)
+	if err != nil {
+		c.errorHandle(err.Error())
+		return "", c.err
+	}
+	return string(s), c.err
 }

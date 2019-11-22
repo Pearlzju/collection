@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -20,21 +21,21 @@ func Collect(src interface{}) Collection {
 		if jsonStr[0] == '[' {
 			var p []interface{}
 			if err := json.Unmarshal([]byte(jsonStr), &p); err != nil {
-				panic(err)
+				return BaseCollection{err: err}
 			}
 			return Collect(p)
 		}
 		if jsonStr[0] == '{' {
 			var p map[string]interface{}
 			if err := json.Unmarshal([]byte(jsonStr), &p); err != nil {
-				panic(err)
+				return BaseCollection{err: err}
 			}
 			var c MapCollection
 			c.value = p
 			c.length = len(p)
 			return c
 		}
-		panic("invalid type")
+		return BaseCollection{err: errors.New("invalid type")}
 	case []string:
 		var c StringArrayCollection
 		c.value = src.([]string)
@@ -115,7 +116,7 @@ func Collect(src interface{}) Collection {
 		return c
 	case []interface{}:
 		if len(src.([]interface{})) == 0 {
-			panic("wrong value")
+			return BaseCollection{err: errors.New("wrong value")}
 		}
 		switch src.([]interface{})[0].(type) {
 		case map[string]interface{}:
@@ -218,10 +219,10 @@ func Collect(src interface{}) Collection {
 			c.length = len(src.([]interface{}))
 			return c
 		default:
-			panic("wrong type")
+			return BaseCollection{err: errors.New("wrong type")}
 		}
 	default:
-		panic("wrong type")
+		return BaseCollection{err: errors.New("wrong type")}
 	}
 }
 
@@ -574,7 +575,6 @@ func newDecimalFromInterface(a interface{}) decimal.Decimal {
 	case float64:
 		d = decimal.NewFromFloat(a.(float64))
 	default:
-		panic("wrong type")
 	}
 
 	return d
@@ -631,12 +631,12 @@ func copyMap(m map[string]interface{}) map[string]interface{} {
 	dec := gob.NewDecoder(&buf)
 	err := enc.Encode(m)
 	if err != nil {
-		panic(err)
+		return nil
 	}
 	var cm map[string]interface{}
 	err = dec.Decode(&cm)
 	if err != nil {
-		panic(err)
+		return nil
 	}
 	return cm
 }

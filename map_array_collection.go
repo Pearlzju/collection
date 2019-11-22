@@ -2,6 +2,7 @@ package collection
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
 	"math/rand"
@@ -36,8 +37,16 @@ func (c MapArrayCollection) Length() int {
 // https://github.com/mitchellh/mapstructure
 func (c MapArrayCollection) ToStruct(dist interface{}) {
 	if err := mapstructure.Decode(c.value, dist); err != nil {
-		panic(err)
+		dist = nil
 	}
+}
+
+func (c MapArrayCollection) ToStructE(dist interface{}) error {
+	if err := mapstructure.Decode(c.value, dist); err != nil {
+		dist = nil
+		c.errorHandle(err.Error())
+	}
+	return c.err
 }
 
 // Select select the keys of collection and delete others.
@@ -225,7 +234,7 @@ func (c MapArrayCollection) Splice(index ...int) Collection {
 
 		return MapArrayCollection{n, BaseCollection{length: len(n)}}
 	} else {
-		panic("invalid argument")
+		return BaseCollection{err: errors.New("invalid argument")}
 	}
 }
 
@@ -233,7 +242,7 @@ func (c MapArrayCollection) Splice(index ...int) Collection {
 func (c MapArrayCollection) Take(num int) Collection {
 	var d MapArrayCollection
 	if num > c.length {
-		panic("not enough elements to take")
+		return BaseCollection{err: errors.New("not enough elements to take")}
 	}
 
 	if num >= 0 {
@@ -255,6 +264,10 @@ func (c MapArrayCollection) All() []interface{} {
 	}
 
 	return s
+}
+
+func (c MapArrayCollection) AllE() ([]interface{}, error) {
+	return c.All(), c.err
 }
 
 // Mode returns the mode value of a given key.
@@ -282,9 +295,17 @@ func (c MapArrayCollection) Mode(key ...string) []interface{} {
 	return maxValue
 }
 
+func (c MapArrayCollection) ModeE(key ...string) ([]interface{}, error) {
+	return c.Mode(key...), c.err
+}
+
 // ToMapArray converts the collection into a plain golang slice which contains map.
 func (c MapArrayCollection) ToMapArray() []map[string]interface{} {
 	return c.value
+}
+
+func (c MapArrayCollection) ToMapArrayE() ([]map[string]interface{}, error) {
+	return c.value, c.err
 }
 
 // Chunk breaks the collection into multiple, smaller collections of a given size.
@@ -371,9 +392,19 @@ func (c MapArrayCollection) Dd() {
 	dd(c)
 }
 
+func (c MapArrayCollection) DdE() error {
+	dd(c)
+	return c.err
+}
+
 // Dump dumps the collection's items.
 func (c MapArrayCollection) Dump() {
 	dump(c)
+}
+
+func (c MapArrayCollection) DumpE() error {
+	dump(c)
+	return c.err
 }
 
 // Every may be used to verify that all elements of a collection pass a given truth test.
@@ -384,6 +415,10 @@ func (c MapArrayCollection) Every(cb CB) bool {
 		}
 	}
 	return true
+}
+
+func (c MapArrayCollection) EveryE(cb CB) (bool, error) {
+	return c.Every(cb), c.err
 }
 
 // Filter filters the collection using the given callback, keeping only those items that pass a given truth test.
@@ -416,6 +451,10 @@ func (c MapArrayCollection) First(cbs ...CB) interface{} {
 			return nil
 		}
 	}
+}
+
+func (c MapArrayCollection) FirstE(cbs ...CB) (interface{}, error) {
+	return c.First(cbs...), c.err
 }
 
 // FirstWhere returns the first element in the collection with the given key / value pair.
@@ -469,6 +508,10 @@ func (c MapArrayCollection) FirstWhere(key string, values ...interface{}) map[st
 	return map[string]interface{}{}
 }
 
+func (c MapArrayCollection) FirstWhereE(key string, values ...interface{}) (map[string]interface{}, error) {
+	return c.FirstWhere(key, values...), c.err
+}
+
 // GroupBy groups the collection's items by a given key.
 func (c MapArrayCollection) GroupBy(k string) Collection {
 	var d = make(map[string]interface{}, 0)
@@ -504,14 +547,26 @@ func (c MapArrayCollection) Implode(key string, delimiter string) string {
 	return res[:len(res)-1]
 }
 
+func (c MapArrayCollection) ImplodeE(key string, delimiter string) (string, error) {
+	return c.Implode(key, delimiter), c.err
+}
+
 // IsEmpty returns true if the collection is empty; otherwise, false is returned.
 func (c MapArrayCollection) IsEmpty() bool {
 	return len(c.value) == 0
 }
 
+func (c MapArrayCollection) IsEmptyE() (bool, error) {
+	return c.IsEmpty(), c.err
+}
+
 // IsNotEmpty returns true if the collection is not empty; otherwise, false is returned.
 func (c MapArrayCollection) IsNotEmpty() bool {
 	return len(c.value) != 0
+}
+
+func (c MapArrayCollection) IsNotEmptyE() (bool, error) {
+	return c.IsNotEmpty(), c.err
 }
 
 // KeyBy keys the collection by the given key. If multiple items have the same key, only the last one will
@@ -558,6 +613,10 @@ func (c MapArrayCollection) Last(cbs ...CB) interface{} {
 			return nil
 		}
 	}
+}
+
+func (c MapArrayCollection) LastE(cbs ...CB) (interface{}, error) {
+	return c.Last(cbs...), c.err
 }
 
 // MapToGroups groups the collection's items by the given callback.
@@ -617,6 +676,10 @@ func (c MapArrayCollection) Pop() interface{} {
 	return last
 }
 
+func (c MapArrayCollection) PopE() (interface{}, error) {
+	return c.Pop(), c.err
+}
+
 // Push appends an item to the end of the collection.
 func (c MapArrayCollection) Push(v interface{}) Collection {
 	var d = make([]map[string]interface{}, len(c.value)+1)
@@ -641,7 +704,7 @@ func (c MapArrayCollection) Random(num ...int) Collection {
 		}
 	} else {
 		if num[0] > len(c.value) {
-			panic("wrong num")
+			return BaseCollection{err: errors.New("wrong num")}
 		}
 		var d = make([]map[string]interface{}, len(c.value))
 		copy(d, c.value)
@@ -664,6 +727,10 @@ func (c MapArrayCollection) Reduce(cb ReduceCB) interface{} {
 	}
 
 	return res
+}
+
+func (c MapArrayCollection) ReduceE(cb ReduceCB) (interface{}, error) {
+	return c.Reduce(cb), c.err
 }
 
 // Reject filters the collection using the given callback.
@@ -702,6 +769,10 @@ func (c MapArrayCollection) Search(v interface{}) int {
 		}
 	}
 	return -1
+}
+
+func (c MapArrayCollection) SearchE(v interface{}) (int, error) {
+	return c.Search(v), c.err
 }
 
 // Shift removes and returns the first item from the collection.
@@ -858,7 +929,16 @@ func (c MapArrayCollection) Where(key string, values ...interface{}) Collection 
 func (c MapArrayCollection) ToJson() string {
 	s, err := json.Marshal(c.value)
 	if err != nil {
-		panic(err)
+		return ""
 	}
 	return string(s)
+}
+
+func (c MapArrayCollection) ToJsonE() (string, error) {
+	s, err := json.Marshal(c.value)
+	if err != nil {
+		c.errorHandle(err.Error())
+		return "", c.err
+	}
+	return string(s), c.err
 }
