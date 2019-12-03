@@ -35,6 +35,9 @@ b := []map[string]interface{}{
 
 Collect(b).Where("name", "Jack").ToMapArray()[0]
 
+// *E method will return an error extra.
+data, err := Collect(b).Where("name", "Jack").ToMapArrayE()
+
 // map[string]interface{}{"name": "Jack", "sex": 0}
 
 ``` 
